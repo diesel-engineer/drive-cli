@@ -419,7 +419,7 @@ def pull_content(cwd, fid):
     for item in lis:
         dir_name = os.path.join(cwd, item['name'])
         if(item['mimeType'] != 'application/vnd.google-apps.folder'):
-            if((not os.path.exists(dir_name)) or write_needed(dir_name, item)):
+            if((not os.path.exists(dir_name)) or (not dir_name in data) or write_needed(dir_name, item)):
                 file_download(item, cwd, data[cwd]['time'])
         else:
             if(not os.path.exists(dir_name)):
