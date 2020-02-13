@@ -146,10 +146,13 @@ def get_request(service, fid, mimeType):
 
 
 def write_needed(dir_name, item):
+    data = drive_data()
+    if not dir_name in data:
+        click.secho("drive_data doesn't have " + dir_name + ". Force redownloading...")
+        return True
     drive_time = time.mktime(time.strptime(
         item['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ')) + float(19800.00)
     local_time = os.path.getmtime(dir_name)
-    data = drive_data()
     sync_time = data[dir_name]['time']
     if(sync_time < drive_time):
         if(sync_time < local_time):
@@ -419,7 +422,7 @@ def pull_content(cwd, fid):
     for item in lis:
         dir_name = os.path.join(cwd, item['name'])
         if(item['mimeType'] != 'application/vnd.google-apps.folder'):
-            if((not os.path.exists(dir_name)) or (not dir_name in data) or write_needed(dir_name, item)):
+            if((not os.path.exists(dir_name)) or write_needed(dir_name, item)):
                 file_download(item, cwd, data[cwd]['time'])
         else:
             if(not os.path.exists(dir_name)):
