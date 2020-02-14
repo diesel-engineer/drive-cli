@@ -1,14 +1,15 @@
 from __future__ import print_function
-import pickle
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import sys
 from datetime import datetime
+from oauth2client import file, client, tools
 
 # If modifying these scopes, delete the file token.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+dirpath = os.path.dirname(os.path.realpath(__file__))
 
 # The ID and range of a sample spreadsheet.
 SPREADSHEET_ID = sys.argv[1]
@@ -29,20 +30,15 @@ def main():
     # The file token stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token'):
-        with open('token', 'rb') as token:
-            creds = pickle.load(token)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'oauth.json', SCOPES)
-            creds = flow.run_local_server(port = 0)
-        # Save the credentials for the next run
-        with open('token', 'wb') as token:
-            pickle.dump(creds, token)
+    token = os.path.join(dirpath, 'token.json')
+    store = file.Storage(token)
+    creds = store.get()
+    
+    if not creds or creds.invalid:
+        client_id = os.path.join(dirpath, 'oauth.json')
+        flow = client.flow_from_clientsecrets(client_id, SCOPES)
+        flags = tools.argparser.parse_args(args=[])
+        creds = tools.run_flow(flow, store, flags)
 
     service = build('sheets', 'v4', credentials = creds)
 
